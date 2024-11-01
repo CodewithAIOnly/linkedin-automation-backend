@@ -8,7 +8,6 @@ const mongoose = require('mongoose');
 const axios = require('axios');
 const rateLimit = require('express-rate-limit');
 
-
 dotenv.config();
 
 const app = express();
@@ -131,20 +130,33 @@ async function handleCommentReply(text, parentPost) {
   return await generateShortAIReply(prompt);
 }
 
-// Function to handle post creation
+// Function to handle post creatio
 async function handlePostCreation(text, userProfile) {
-  let prompt = `You are a professional LinkedIn content creator. Create a 3-4 sentence post based on the following draft or topic. The post should be engaging, informative, and suitable for a professional audience on LinkedIn. If specific user profile information is provided, tailor the content accordingly. If not, create a general professional post:\n\n`;
-  
-  if (userProfile && Object.keys(userProfile).length > 0) {
-    prompt += `User profile: ${JSON.stringify(userProfile)}\n`;
+  let prompt = '';
+
+  if (text && text.trim() !== '') {
+    prompt = `You are a professional LinkedIn content creator. Create a 5-6 sentence post based on the following draft or topic. The post should be engaging, informative, and suitable for a professional audience on LinkedIn:\n\n${text}\n\n`;
   } else {
-    prompt += `User profile: Not provided. Create a general professional post.\n`;
+    prompt = `You are a professional LinkedIn content creator. Create a 5-6 sentence post tailored to the following user profile. The post should be engaging, informative, and suitable for a professional audience on LinkedIn:\n\n`;
+    
+    if (userProfile && Object.keys(userProfile).length > 0) {
+      prompt += `User Profile:\n`;
+      prompt += `Name: ${userProfile.name}\n`;
+      prompt += `Title: ${userProfile.title}\n`;
+      prompt += `About: ${userProfile.about}\n`;
+      prompt += `Experience: ${userProfile.experience.join(', ')}\n`;
+      prompt += `Education: ${userProfile.education.join(', ')}\n\n`;
+      prompt += `Create a post that showcases the user's expertise, highlights their professional achievements, or discusses a topic relevant to their industry. The post should reflect the user's professional background and interests.\n\n`;
+    } else {
+      prompt += `User profile: Not provided. Create a general professional post.\n\n`;
+    }
   }
-  
-  prompt += `Ensure the post is 5-6 sentences long, engaging, and professional in tone. Please don't add any special character.`;
-  
+
+  prompt += `Ensure the post is engaging, professional in tone, and does not include any special characters. The post should be relevant to the user's professional background or the provided topic. Include a call-to-action or encourage engagement from the audience.`;
+
   return await generateLongAIReply(prompt);
 }
+
 
 // Function to handle message replies
 async function handleMessageReply(text, previousMessages) {
@@ -184,7 +196,7 @@ app.post('/api/get-ai-reply', verifyToken, apiLimiter, async (req, res) => {
       return res.status(429).json({ success: false, error: 'Daily request limit exceeded. Please try again tomorrow.' });
     }
 
-    const { text, context, previousMessages, additionalContext } = req.body;
+    const { text, context, previousMessages, additionalContext, userProfile } = req.body;
 
     let reply;
     switch (context) {
@@ -195,7 +207,7 @@ app.post('/api/get-ai-reply', verifyToken, apiLimiter, async (req, res) => {
         reply = await handleCommentReply(text, additionalContext);
         break;
       case 'post':
-        reply = await handlePostCreation(text, additionalContext);
+        reply = await handlePostCreation(text, userProfile);
         break;
       default:
         throw new Error('Invalid context');
@@ -212,7 +224,9 @@ app.post('/api/get-ai-reply', verifyToken, apiLimiter, async (req, res) => {
   }
 });
 
+
 // Function to handle retries
+
 async function retryWithExponentialBackoff(fn, maxRetries = 3, initialDelay = 1000) {
   let retries = 0;
   while (retries < maxRetries) {
@@ -365,32 +379,6 @@ app.post('/api/linkedin/share', verifyToken, async (req, res) => {
     res.status(500).json({ success: false, error: 'Failed to share content on LinkedIn', details:  error.message });
   }
 });
-//     const { prompt } = req.body;
-//     const apiKey = process.env.GEMINI_API_KEY;
-
-//     console.log("Using Gemini API key:", apiKey);
-
-//     const genAI = new GoogleGenerativeAI(apiKey);
-//     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-
-//     const result = await model.generateContent({
-//       contents: [{ parts: [{ text: prompt }] }]
-//     });
-
-//     if (!result.response) {
-//       throw new Error('No response from Gemini API');
-//     }
-
-//     const generatedText = result.response.text();
-//     console.log("API response data:", { generatedText });
-//     res.json({ generatedText });
-//   } catch (error) {
-//     console.error("Error generating text:", error);
-//     res.status(500).json({ error: error.message });
-//   }
-// });
-
-// Start the server
 
 app.post('/api/generate', verifyToken, apiLimiter, async (req, res) => {
   try {
