@@ -130,7 +130,7 @@ async function handleCommentReply(text, parentPost) {
   return await generateShortAIReply(prompt);
 }
 
-// Function to handle post creatio
+// Function to handle post creation
 async function handlePostCreation(text, userProfile) {
   let prompt = '';
 
@@ -142,10 +142,17 @@ async function handlePostCreation(text, userProfile) {
     if (userProfile && Object.keys(userProfile).length > 0) {
       prompt += `User Profile:\n`;
       prompt += `Name: ${userProfile.name}\n`;
-      prompt += `Title: ${userProfile.title}\n`;
-      prompt += `About: ${userProfile.about}\n`;
-      prompt += `Experience: ${userProfile.experience.join(', ')}\n`;
-      prompt += `Education: ${userProfile.education.join(', ')}\n\n`;
+      // prompt += `Title: Software Engineer\n`;
+      prompt += `About: As I continue to grow in my career, I often reflect on the incredible journey I've had in the world of software engineering. From learning to code in my first programming class to tackling complex challenges in my current role, every step has shaped my skills and mindset.
+      Key Lessons Learned:
+Continuous Learning: The tech industry is always evolving, and staying curious has allowed me to embrace new technologies and methodologies.
+Collaboration: Working with diverse teams has not only enriched my projects but also broadened my perspective on problem-solving.
+Resilience: Overcoming challenges, whether they be bugs, deadlines, or learning curves, has taught me the importance of persistence and adaptability.
+What’s Next? I’m excited to explore more and continue contributing to innovative projects that make a difference.
+Let’s Connect! I’d love to hear your experiences and insights as well. What lessons have you learned on your journey as a software engineer? 
+#SoftwareEngineering #ContinuousLearning #CareerGrowth #TechJourney #Collaboration\n`;
+      // prompt += `Experience: ${userProfile.experience.join(', ')}\n`;
+      // prompt += `Education: ${userProfile.education.join(', ')}\n\n`;
       prompt += `Create a post that showcases the user's expertise, highlights their professional achievements, or discusses a topic relevant to their industry. The post should reflect the user's professional background and interests.\n\n`;
     } else {
       prompt += `User profile: Not provided. Create a general professional post.\n\n`;
